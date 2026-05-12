@@ -1,0 +1,92 @@
+openapi: 3.0.3
+info:
+  title: NimbusRetail Auth Service
+  version: 1.0.0
+  description: User registration, login, and JWT issuance.
+servers:
+  - url: http://localhost:3001
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:    { type: string, format: uuid }
+                  email: { type: string }
+        '400': { description: Invalid input }
+        '409': { description: Email already registered }
+  /auth/login:
+    post:
+      summary: Authenticate and receive a JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:    { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:  { type: string }
+                  userId: { type: string, format: uuid }
+        '401': { description: Invalid credentials }
+  /auth/me:
+    get:
+      summary: Get the current user from the bearer token
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId: { type: string, format: uuid }
+                  email:  { type: string }
+        '401': { description: Missing or invalid token }
+  /healthz:
+    get:
+      summary: Liveness probe
+      responses: { '200': { description: Alive } }
+  /readyz:
+    get:
+      summary: Readiness probe
+      responses:
+        '200': { description: Ready }
+        '503': { description: Not ready }
+  /metrics:
+    get:
+      summary: Prometheus metrics
+      responses: { '200': { description: Metrics } }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
