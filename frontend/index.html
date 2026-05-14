@@ -42,10 +42,10 @@
   </section>
 
 <script>
-const AUTH = 'http://localhost:3001';
-const CATALOG = 'http://localhost:3002';
-const CART = 'http://localhost:3003';
-const ORDER = 'http://localhost:3004';
+const AUTH = 'http://localhost:8080';
+const CATALOG = 'http://localhost:8080';
+const CART = 'http://localhost:8080';
+const ORDER = 'http://localhost:8080';
 
 let token = null;
 
@@ -99,6 +99,7 @@ async function placeOrder() {
   });
   document.getElementById('order-out').textContent = JSON.stringify(await r.json(), null, 2);
 }
+
 </script>
 </body>
 </html>
