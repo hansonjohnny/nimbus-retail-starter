@@ -10,7 +10,6 @@ def services = [
 
 def changedService = detectChangedService(services)
 
-// Check frontend separately since it's not under services/
 def frontendChanged = sh(
     script: "git diff --name-only HEAD~1 HEAD | grep '^frontend/'",
     returnStatus: true
@@ -23,9 +22,9 @@ if (frontendChanged) {
     )
 } else if (changedService) {
     fullPipeline(
-        service:         changedService,
-        appDir:          "services/${changedService}",
-        k8sDir:          "k8s/${changedService}",
+        service:          changedService,
+        appDir:           "services/${changedService}",
+        k8sDir:           "k8s/${changedService}",
         sonarProjectKey:  "cloud-native-${changedService}",
         sonarProjectName: "cloud-native-${changedService}",
         ecrCredId:        "ECR_REPO_${changedService.toUpperCase().replace('-','_')}",
