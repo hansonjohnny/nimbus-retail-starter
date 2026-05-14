@@ -18,10 +18,30 @@ node {
         returnStdout: true
     ).trim().split('\n')
 
-    def frontendChanged = changedFiles.any { it.startsWith('frontend/') }
-    def changedService = changedFiles.findResult { f ->
-        services.find { svc -> f.startsWith("services/${svc}/") }
+    def frontendChanged = false
+    def changedService = null
+
+    for (f in changedFiles) {
+        if (f.startsWith('frontend/')) {
+            frontendChanged = true
+            break
+        }
     }
+
+    if (!frontendChanged) {
+        for (f in changedFiles) {
+            for (svc in services) {
+                if (f.startsWith("services/${svc}/")) {
+                    changedService = svc
+                    break
+                }
+            }
+            if (changedService) break
+        }
+    }
+
+    echo "Frontend changed: ${frontendChanged}"
+    echo "Service changed: ${changedService}"
 
     if (frontendChanged) {
         frontendPipeline(
