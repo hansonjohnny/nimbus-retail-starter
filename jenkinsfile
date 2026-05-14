@@ -1,36 +1,45 @@
 @Library('jenkins-shared-library') _
 
-def services = [
-    'auth-service',
-    'cart-service',
-    'catalog-service',
-    'order-service',
-    'notification-service'
-]
+node {
+    stage('Checkout') {
+        checkout scm
+    }
 
-def changedService = detectChangedService(services)
+    def services = [
+        'auth-service',
+        'cart-service',
+        'catalog-service',
+        'order-service',
+        'notification-service'
+    ]
 
-def frontendChanged = sh(
-    script: "git diff --name-only HEAD~1 HEAD | grep '^frontend/'",
-    returnStatus: true
-) == 0
+    def changedFiles = sh(
+        script: "git diff --name-only HEAD~1 HEAD || git diff --name-only \$(git rev-list --max-parents=0 HEAD) HEAD",
+        returnStdout: true
+    ).trim().split('\n')
 
-if (frontendChanged) {
-    frontendPipeline(
-        gitRepoName: 'nimb-platform',
-        gitUserName: 'hansonjohnny'
-    )
-} else if (changedService) {
-    fullPipeline(
-        service:          changedService,
-        appDir:           "services/${changedService}",
-        k8sDir:           "k8s/${changedService}",
-        sonarProjectKey:  "cloud-native-${changedService}",
-        sonarProjectName: "cloud-native-${changedService}",
-        ecrCredId:        "ECR_REPO_${changedService.toUpperCase().replace('-','_')}",
-        gitRepoName:      'nimb-platform',
-        gitUserName:      'hansonjohnny'
-    )
-} else {
-    echo "No changes detected in any service or frontend, skipping."
+    def frontendChanged = changedFiles.any { it.startsWith('frontend/') }
+    def changedService = changedFiles.findResult { f ->
+        services.find { svc -> f.startsWith("services/${svc}/") }
+    }
+
+    if (frontendChanged) {
+        frontendPipeline(
+            gitRepoName: 'nimb-platform',
+            gitUserName: 'hansonjohnny'
+        )
+    } else if (changedService) {
+        fullPipeline(
+            service:          changedService,
+            appDir:           "services/${changedService}",
+            k8sDir:           "k8s/${changedService}",
+            sonarProjectKey:  "cloud-native-${changedService}",
+            sonarProjectName: "cloud-native-${changedService}",
+            ecrCredId:        "ECR_REPO_${changedService.toUpperCase().replace('-','_')}",
+            gitRepoName:      'nimb-platform',
+            gitUserName:      'hansonjohnny'
+        )
+    } else {
+        echo "No changes detected in any service or frontend, skipping."
+    }
 }
