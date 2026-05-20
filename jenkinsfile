@@ -45,7 +45,7 @@ node {
 
     if (frontendChanged) {
         frontendPipeline(
-            gitRepoName: 'nimb-platform',
+            gitRepoName: 'nimbs-platform',
             gitUserName: 'hansonjohnny'
         )
     } else if (changedService) {
