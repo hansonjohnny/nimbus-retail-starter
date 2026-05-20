@@ -59,6 +59,16 @@ services:
       kafka:
         condition: service_healthy
 
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - catalog-service
+      - cart-service
+      - order-service
+
   auth-service:
     build: ./services/auth-service
     ports:
